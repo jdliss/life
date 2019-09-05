@@ -243,7 +243,7 @@ impl event::EventHandler for GameState {
                                 self.board[x as usize][y as usize].dead = false;
                             }
                         } else {
-                            if neighbors == 0 || neighbors == 1 || neighbors >= 4 {
+                            if neighbors < 2 || neighbors >= 4 {
                                 self.board[x as usize][y as usize].dead = true;
                             }
                         }
@@ -304,11 +304,11 @@ impl event::EventHandler for GameState {
 }
 
 fn main() -> GameResult {
-    let (ctx, events_loop) = &mut ggez::ContextBuilder::new("The Game of Life", "Jon Liss")
-        .window_setup(ggez::conf::WindowSetup::default().title("The Game of Life"))
+    let (ctx, events_loop) = &mut ggez::ContextBuilder::new("Life", "Jon Liss")
+        .window_setup(ggez::conf::WindowSetup::default().title("Life"))
         .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_SIZE.0, SCREEN_SIZE.1))
         .build()?;
 
-    let state = &mut GameState::new(1000);
+    let state = &mut GameState::new(0);
     event::run(ctx, events_loop, state)
 }
