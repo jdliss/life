@@ -7,8 +7,8 @@ use ggez::event::{self, MouseButton, KeyCode, KeyMods};
 use ggez::{graphics, Context, GameResult};
 use std::time::{Duration, Instant};
 
-const GRID_SIZE: (i16, i16) = (100, 100);
-const GRID_CELL_SIZE: (i16, i16) = (10, 10);
+const GRID_SIZE: (i16, i16) = (200, 150);
+const GRID_CELL_SIZE: (i16, i16) = (8, 8);
 
 const SCREEN_SIZE: (f32, f32) = (
     GRID_SIZE.0 as f32 * GRID_CELL_SIZE.0 as f32,
@@ -90,6 +90,7 @@ struct GameState {
     last_update: Instant,
     run: bool,
     reset_board: bool,
+    mouse_down: bool,
 }
 
 impl GameState {
@@ -101,6 +102,7 @@ impl GameState {
             last_update: Instant::now(),
             run: false,
             reset_board: false,
+            mouse_down: false,
         }
     }
 
@@ -199,6 +201,20 @@ impl GameState {
 
         neighbors
     }
+
+    fn toggle_cell(board: &mut Vec<Vec<Cell>>, x: f32, y: f32, mouse_motion: bool) {
+        let grid_x = x as i16 / GRID_CELL_SIZE.0;
+        let grid_y = y as i16 / GRID_CELL_SIZE.1;
+
+        match board[grid_x as usize][grid_y as usize] {
+            Cell { dead: true, .. } => board[grid_x as usize][grid_y as usize].dead = false,
+            Cell { dead: false, .. } => {
+                if !mouse_motion {
+                    board[grid_x as usize][grid_y as usize].dead = true;
+                }
+            }
+        }
+    }
 }
 
 impl event::EventHandler for GameState {
@@ -270,18 +286,19 @@ impl event::EventHandler for GameState {
         }
     }
 
+    fn mouse_button_up_event(&mut self, _ctx: &mut Context, _button: MouseButton, _x: f32, _y: f32) {
+        self.mouse_down = false;
+    }
 
     fn mouse_button_down_event(&mut self, _ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
-        let grid_x = x as i16 / GRID_CELL_SIZE.0;
-        let grid_y = y as i16 / GRID_CELL_SIZE.1;
-        let new_cell_pos = GridPosition::new(grid_x, grid_y);
-        let cell = Cell::new(new_cell_pos, false);
+        self.mouse_down = true;
 
-        match self.board[grid_x as usize][grid_y as usize] {
-            Cell { dead: true, .. } => self.board[grid_x as usize][grid_y as usize] = cell,
-            Cell { dead: false, .. } => {
-                self.board[grid_x as usize][grid_y as usize].dead = true;
-            }
+        Self::toggle_cell(&mut self.board, x, y, false);
+    }
+
+    fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _xrel: f32, _yrel: f32) {
+        if self.mouse_down {
+            Self::toggle_cell(&mut self.board, x, y, true);
         }
     }
 }
@@ -292,6 +309,6 @@ fn main() -> GameResult {
         .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_SIZE.0, SCREEN_SIZE.1))
         .build()?;
 
-    let state = &mut GameState::new(0);
+    let state = &mut GameState::new(1000);
     event::run(ctx, events_loop, state)
 }
