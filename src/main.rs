@@ -13,8 +13,7 @@ const GRID_CELL_SIZE: (i16, i16) = (10, 10);
 const SCREEN_SIZE: (f32, f32) = (
     GRID_SIZE.0 as f32 * GRID_CELL_SIZE.0 as f32,
     GRID_SIZE.1 as f32 * GRID_CELL_SIZE.1 as f32,
-);
-
+    );
 
 const UPDATES_PER_SECOND: f32 = 20.0;
 const MILLIS_PER_UPDATE: u64 = (1.0 / UPDATES_PER_SECOND * 1000.0) as u64;
@@ -29,12 +28,12 @@ impl GridPosition {
     pub fn new(x: i16, y: i16) -> Self {
         GridPosition { x, y }
     }
-pub fn random(max_x: i16, max_y: i16) -> Self {
+    pub fn random(max_x: i16, max_y: i16) -> Self {
         let mut rng = rand::thread_rng();
         (
             rng.gen_range::<i16, i16, i16>(0, max_x),
             rng.gen_range::<i16, i16, i16>(0, max_y),
-        )
+            )
             .into()
     }
 }
@@ -46,7 +45,7 @@ impl From<GridPosition> for graphics::Rect {
             pos.y as i32 * GRID_CELL_SIZE.1 as i32,
             GRID_CELL_SIZE.0 as i32,
             GRID_CELL_SIZE.1 as i32,
-        )
+            )
     }
 }
 
