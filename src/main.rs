@@ -91,6 +91,7 @@ struct GameState {
     run: bool,
     reset_board: bool,
     mouse_down: bool,
+    lshift_pressed: bool,
 }
 
 impl GameState {
@@ -103,6 +104,7 @@ impl GameState {
             run: false,
             reset_board: false,
             mouse_down: false,
+            lshift_pressed: false,
         }
     }
 
@@ -202,15 +204,19 @@ impl GameState {
         neighbors
     }
 
-    fn toggle_cell(board: &mut Vec<Vec<Cell>>, x: f32, y: f32, mouse_motion: bool) {
+    fn toggle_cell(board: &mut Vec<Vec<Cell>>, x: f32, y: f32, mouse_motion: bool, lshift_pressed: bool) {
         let grid_x = x as i16 / GRID_CELL_SIZE.0;
         let grid_y = y as i16 / GRID_CELL_SIZE.1;
 
-        match board[grid_x as usize][grid_y as usize] {
-            Cell { dead: true, .. } => board[grid_x as usize][grid_y as usize].dead = false,
-            Cell { dead: false, .. } => {
-                if !mouse_motion {
-                    board[grid_x as usize][grid_y as usize].dead = true;
+        if lshift_pressed {
+            board[grid_x as usize][grid_y as usize].dead = true;
+        } else {
+            match board[grid_x as usize][grid_y as usize] {
+                Cell { dead: true, .. } => board[grid_x as usize][grid_y as usize].dead = false,
+                Cell { dead: false, .. } => {
+                    if !mouse_motion {
+                        board[grid_x as usize][grid_y as usize].dead = true;
+                    }
                 }
             }
         }
@@ -282,7 +288,17 @@ impl event::EventHandler for GameState {
                 self.reset_board = true;
             },
 
+            KeyCode::LShift => {
+                self.lshift_pressed = true;
+            },
+
             _ => println!("{:?} is not a valid command!", keycode)
+        }
+    }
+
+    fn key_up_event(&mut self, _ctx: &mut Context, keycode: KeyCode, _keymod: KeyMods) {
+        if keycode == KeyCode::LShift {
+            self.lshift_pressed = false;
         }
     }
 
@@ -293,12 +309,12 @@ impl event::EventHandler for GameState {
     fn mouse_button_down_event(&mut self, _ctx: &mut Context, _button: MouseButton, x: f32, y: f32) {
         self.mouse_down = true;
 
-        Self::toggle_cell(&mut self.board, x, y, false);
+        Self::toggle_cell(&mut self.board, x, y, false, self.lshift_pressed);
     }
 
     fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _xrel: f32, _yrel: f32) {
         if self.mouse_down {
-            Self::toggle_cell(&mut self.board, x, y, true);
+            Self::toggle_cell(&mut self.board, x, y, true, self.lshift_pressed);
         }
     }
 }
